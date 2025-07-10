@@ -2,14 +2,20 @@ import fetch from 'node-fetch';
 const https = require('https');
 import config from '../config/config';
 
-export async function aiPrompt(prompt: string): Promise<any> {
-
+/**
+ * @param prompt makes a request to AI service with the provided prompt
+ * @returns returns the AI response
+ */
+export async function getAiResponse(prompt: string): Promise<any> {
   // Needed only for self-signed certs or local dev HTTPS, Don't use this in production
   const agent = new https.Agent({
     rejectUnauthorized: false
   });
 
-  const url = 'https://localhost:8082/openai/deployments/gpt-4o-mini/chat/completions?api-version=2025-01-01-preview';
+  // this will go to our (private) Azure OpenAI service
+  // for demo running locally I'm using a self-signed cert
+  // and SSH tunnel via bastion host
+  const url = 'https://localhost:8083/openai/deployments/gpt-4o-mini/chat/completions?api-version=2025-01-01-preview';
   const body = JSON.stringify({
     messages: [{ role: 'system', content: prompt }],
     max_tokens: 50

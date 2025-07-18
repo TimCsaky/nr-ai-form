@@ -1,6 +1,6 @@
 import fetch from 'node-fetch';
 const https = require('https');
-import config from '../config/config';
+import dotenv from 'dotenv';
 
 /**
  * @param prompt makes a request to AI service with the provided prompt
@@ -25,7 +25,7 @@ export async function getAiResponse(prompt: string): Promise<any> {
     method: 'POST',
     headers: {
       'Host': 'css-ai-dev-openai-east.openai.azure.com',
-      'api-key': config.aiKey,
+      'api-key': process.env.AI_KEY!,
       'Content-Type': 'application/json',
       'Content-Length': Buffer.byteLength(body).toString()
     },

@@ -64,8 +64,6 @@
         // Listen for messages from the parent window
         window.addEventListener('message', (event) => {
 
-            console.log('message received in iframe:');
-
             // Security check: ensure message is from the expected origin
             // TODO: uncomment following line
             // if (event.origin !== 'http://localhost:5173/static-form') return;
@@ -81,28 +79,22 @@
 
             // receiving form data
             if (event.data.type === 'form') {
-                console.log('Received form data in iframe:', event.data.data);
 
                 // Save event.data and token to local state for use by other functions
                 window.chatState = window.chatState || {};
                 window.chatState.form = event.data.data;
 
                 // show details of the focussed field (filtered from form schema and data)
-                const fieldWithFocus = event.data.data.fieldWithFocus;
+                const fieldName = event.data.data.fieldName;
                 const formSchema = event.data.data.formSchema;
                 const formData = event.data.data.formData;
-                const fieldSchema = formSchema.properties[fieldWithFocus];
-
-                console.log('fieldSchema', fieldSchema);
 
                 // display field data in the chat (for demo)
-                const fieldValue = formData[fieldWithFocus];
+                const fieldValue = formData[fieldName];
                 const fieldData = document.getElementById('fieldData');
-                fieldData.innerHTML = `<strong>Form Schema:</strong> <pre>${JSON.stringify(formSchema, null, 2)} </pre><br>
-                                       <strong>Form Data:</strong> <pre>${JSON.stringify(formData, null, 2)} </pre><br>
-                                       <strong>Field Name:</strong> <pre>${fieldWithFocus}</pre> <br>
-                                       <strong>Field Schema:</strong> <pre>${JSON.stringify(fieldSchema, null, 2)}</pre> <br>
-                                       <strong>Field Value:</strong> <pre>${fieldValue || 'No value set'}</pre>`;
+                fieldData.innerHTML = `<strong>Field Name:</strong> <pre>${fieldName}</pre> <br>
+                                       <strong>Form Schema:</strong> <pre>${JSON.stringify(formSchema, null, 2)} </pre><br>
+                                       <strong>Form Data:</strong> <pre>${JSON.stringify(formData, null, 2)} </pre>`;
 
                 document.getElementById('messages').innerHTML = "";
             }
@@ -112,15 +104,12 @@
 
 
         function requestFieldAssistance() {
-
-            console.log('window.chatState.form', window.chatState.form);
-
             // call the backend API to get assistance for the current field
             const formName = window.chatState.form.formSchema.name;
-            const fieldName = window.chatState.form.fieldWithFocus;
+            const fieldName = window.chatState.form.fieldName;
 
 
-            fetch(`http://localhost:3000/api/v2/${formName}/assist/${fieldName}`, {
+            fetch(`http://localhost:3000/api/v2/assist`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${window.chatState.token}`,
@@ -132,9 +121,6 @@
             })
                 .then(res => res.json())
                 .then(data => {
-
-                    console.log(data);
-
                     return appendMessage(data.aiResponse);
                 })
                 .catch(err => appendMessage('Error: ' + err.message));

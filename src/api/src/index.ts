@@ -1,20 +1,22 @@
-import express, { Request, Response } from "express";
-const cors = require('cors')
-const path = require('path');
-import { errorHandler } from './middleware/errorHandler';
-import config from './config/config';
+import express from "express";
+import cors from 'cors';
+import path from 'path';
 import routes from "./routes";
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const app = express();
+const port = process.env.PORT || 3000;
 
 // ---- cors configuration
-// client script.js and iframe chat.html
-const allowedOrigins = ['http://localhost:5173', 'http://localhost:3000', 'https://posse.org'];
+const allowedOrigins = [
+  'http://localhost:5173', // client's webpage
+  'https://posse.org', // another clinet example
+  'http://localhost:3000', // self - iframe on client's webpage
+];
 const corsOptions = {
   origin: function (origin: any, callback: any) {
-
-    console.log(origin);
-
     if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
       callback(null, true);
     } else {
@@ -22,41 +24,33 @@ const corsOptions = {
     }
   }
 };
-
 app.use(cors(corsOptions));
-// app.use(cors());
 
 
 // ---- http connections
-
-// Serve public frontend scripts for client to embed the form assistant 
+// Serve public javascript and iframe for client to embed the form assistant 
 app.use(express.static(path.join(__dirname, 'public')));
 
 // api routes
 app.use("/api", routes);
 
 
-
-// ------ start the server
-
-app.listen(config.port, () => {
-  console.log(`Server is running on port ${config.port}`);
-});
-app.use(errorHandler);
-
-
 // ---- WebSocket connections
-
 const WebSocket = require('ws');
 const wss = new WebSocket.Server({ port: 8080 });
 wss.on('connection', (ws: any) => {
-  console.log('A new client connected.');
   ws.on('message', (message: any) => {
-    console.log('Received message :', message);
+  console.log('websocket message recieved');
     // reply to client (for demo, with same data)
     ws.send(message.toString());
   });
   ws.on('close', () => {
-    console.log('A client disconnected.');
+    console.log('websocket client disconnected.');
   });
+});
+
+
+// ------ start the server
+app.listen(3000, () => {
+  console.log(`Server is running on port ${port}`);
 });
